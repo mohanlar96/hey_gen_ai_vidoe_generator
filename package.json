@@ -1,0 +1,16 @@
+{
+  "name":"hey-gen-generator",
+  "version":"1.0.0",
+  "author":"GGD & Mohan",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0",
+    "puppeteer-core": "^24.12.1",
+    "readline": "^1.3.0"
+  }
+}
