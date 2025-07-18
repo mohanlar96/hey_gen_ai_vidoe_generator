@@ -1,10 +1,13 @@
 import puppeteer from "puppeteer-core";
 
-const buildScenes = async(scenes) => {
+const buildScenes = async (scenes) => {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: false,
-    executablePath: process.env.CHROME_PATH_MAC
+    executablePath:
+      process.platform === "win32"
+        ? process.env.CHROME_PATH_WINDOW
+        : process.env.CHROME_PATH_MAC,
   });
   const page = await browser.newPage();
   await page.goto("https://app.heygen.com/login", {
@@ -40,6 +43,36 @@ const buildScenes = async(scenes) => {
 
   for (let i = 0; i < scenes.length; i++) {
     const { avatarName, script } = scenes[i];
+
+    //Scroll the scene
+
+    let sceneBtn = null;
+
+    while (!sceneBtn) {
+      // Get all buttons currently visible
+      const buttons = await page.$$("button");
+
+      for (const btn of buttons) {
+        const text = await btn.evaluate((el) => el.textContent.trim());
+        if (text === "Scene") {
+          sceneBtn = btn;
+          break;
+        }
+      }
+
+      if (sceneBtn) break;
+
+      // Scroll down manually and wait for content to load
+      await page.evaluate(() => window.scrollBy(0, 300));
+      await page.waitForTimeout(500);
+    }
+
+    await sceneBtn.evaluate((el) =>
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // End Scrolling the scene
 
     if (i > 0) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -112,12 +145,14 @@ const buildScenes = async(scenes) => {
       if (replaceButtons.length > buttonIndex) {
         await replaceButtons[buttonIndex].click();
         console.log(
-          `🔄 Replace avatar clicked for scene ${i + 1
+          `🔄 Replace avatar clicked for scene ${
+            i + 1
           } (button index ${buttonIndex})`
         );
       } else {
         console.log(
-          `❌ Replace avatar button not found for scene ${i + 1
+          `❌ Replace avatar button not found for scene ${
+            i + 1
           } (index ${buttonIndex})`
         );
         continue;
@@ -194,6 +229,6 @@ const buildScenes = async(scenes) => {
 
   console.log("✅ All scenes created successfully!");
   // await browser.close(); // Optional: close after task
-}
+};
 
-export default buildScenes
+export default buildScenes;
